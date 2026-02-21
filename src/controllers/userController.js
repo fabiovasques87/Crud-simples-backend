@@ -4,7 +4,8 @@ class UserController {
     async getAll(req, res) {
         try {
             const users = await userService.getAllUsers();
-            res.json(users);
+            // remover senha antes de enviar
+            res.json(users.map(u => { delete u.password; return u; }));
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -16,6 +17,7 @@ class UserController {
             if (!user) {
                 return res.status(404).json({ message: 'User not found' });
             }
+            delete user.password;
             res.json(user);
         } catch (error) {
             res.status(500).json({ error: error.message });

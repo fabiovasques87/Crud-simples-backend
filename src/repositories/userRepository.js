@@ -12,10 +12,10 @@ class UserRepository {
     }
 
     async create(user) {
-        const { name, email } = user;
+        const { name, email, password } = user;
         const result = await db.query(
-            'INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *',
-            [name, email]
+            'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
+            [name, email, password]
         );
         return result.rows[0];
     }
@@ -31,6 +31,36 @@ class UserRepository {
 
     async delete(id) {
         await db.query('DELETE FROM users WHERE id = $1', [id]);
+    }
+
+    // additional helpers for authentication
+    async findByEmail(email) {
+        const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+        return result.rows[0];
+    }
+
+    async updatePassword(id, hashedPassword) {
+        const result = await db.query(
+            'UPDATE users SET password = $1 WHERE id = $2 RETURNING *',
+            [hashedPassword, id]
+        );
+        return result.rows[0];
+    }
+
+    async setResetToken(id, token, expires) {
+        await db.query(
+            'UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3',
+            [token, expires, id]
+        );
+    }
+
+    async findByResetToken(token) {
+        const now = new Date();
+        const result = await db.query(
+            'SELECT * FROM users WHERE reset_token = $1 AND reset_token_expires > $2',
+            [token, now]
+        );
+        return result.rows[0];
     }
 }
 

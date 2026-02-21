@@ -1,4 +1,5 @@
 const userRepository = require('../repositories/userRepository');
+const bcrypt = require('bcrypt');
 
 class UserService {
     async getAllUsers() {
@@ -11,10 +12,17 @@ class UserService {
 
     async createUser(data) {
         // Validação simples (pode ser expandida)
-        if (!data.name || !data.email) {
-            throw new Error('Name and email are required');
+        if (!data.name || !data.email || !data.password) {
+            throw new Error('Name, email and password are required');
         }
-        return await userRepository.create(data);
+        const hashed = await bcrypt.hash(data.password, 10);
+        const user = await userRepository.create({
+            name: data.name,
+            email: data.email,
+            password: hashed,
+        });
+        delete user.password;
+        return user;
     }
 
     async updateUser(id, data) {
@@ -22,7 +30,9 @@ class UserService {
         if (!existingUser) {
             throw new Error('User not found');
         }
-        return await userRepository.update(id, data);
+        const user = await userRepository.update(id, data);
+        if (user) delete user.password;
+        return user;
     }
 
     async deleteUser(id) {

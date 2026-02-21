@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 require('dotenv').config();
 
 const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -14,16 +15,29 @@ app.use(bodyParser.json());
 
 // Routes
 app.use('/users', userRoutes);
+app.use('/auth', authRoutes);
 
 app.get('/', (req, res) => {
     res.send('API CRUD Simples rodando!');
 });
 
-// Start server
+// initialize database when server starts (only in main module)
 if (require.main === module) {
-    app.listen(port, () => {
-        console.log(`Servidor rodando na porta ${port}`);
-    });
+    const initDb = require('./scripts/initDb');
+
+    initDb()
+        .then(() => {
+            console.log('Banco de dados inicializado (tabelas criadas se necessário)');
+        })
+        .catch(err => {
+            console.error('Falha ao inicializar banco de dados:', err);
+            // we may still want to start the server, or exit depending on policy
+        })
+        .finally(() => {
+            app.listen(port, () => {
+                console.log(`Servidor rodando na porta ${port}`);
+            });
+        });
 }
 
 module.exports = app;
