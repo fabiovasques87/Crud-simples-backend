@@ -21,23 +21,21 @@ app.get('/', (req, res) => {
     res.send('API CRUD Simples rodando!');
 });
 
-// initialize database when server starts (only in main module)
-if (require.main === module) {
-    const initDb = require('./scripts/initDb');
+// initialize database when server starts
+// require.main === module (Comentado para garantir execução no VPS via PM2)
+const initDb = require('./scripts/initDb');
 
-    initDb()
-        .then(() => {
-            console.log('Banco de dados inicializado (tabelas criadas se necessário)');
-        })
-        .catch(err => {
-            console.error('Falha ao inicializar banco de dados:', err);
-            // we may still want to start the server, or exit depending on policy
-        })
-        .finally(() => {
-            app.listen(port, () => {
-                console.log(`Servidor rodando na porta ${port}`);
-            });
+initDb()
+    .then(() => {
+        console.log('Banco de dados inicializado (tabelas criadas se necessário)');
+    })
+    .catch(err => {
+        console.error('Falha ao inicializar banco de dados:', err);
+    })
+    .finally(() => {
+        app.listen(port, () => {
+            console.log(`Servidor rodando na porta ${port}`);
         });
-}
+    });
 
 module.exports = app;
