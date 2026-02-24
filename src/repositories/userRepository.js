@@ -21,11 +21,19 @@ class UserRepository {
     }
 
     async update(id, user) {
-        const { name, email } = user;
-        const result = await db.query(
-            'UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *',
-            [name, email, id]
-        );
+        const { name, email, password } = user;
+        let result;
+        if (password) {
+            result = await db.query(
+                'UPDATE users SET name = $1, email = $2, password = $3 WHERE id = $4 RETURNING *',
+                [name, email, password, id]
+            );
+        } else {
+            result = await db.query(
+                'UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *',
+                [name, email, id]
+            );
+        }
         return result.rows[0];
     }
 

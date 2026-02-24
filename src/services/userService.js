@@ -30,7 +30,13 @@ class UserService {
         if (!existingUser) {
             throw new Error('User not found');
         }
-        const user = await userRepository.update(id, data);
+
+        const updateData = { ...data };
+        if (updateData.password) {
+            updateData.password = await bcrypt.hash(updateData.password, 10);
+        }
+
+        const user = await userRepository.update(id, updateData);
         if (user) delete user.password;
         return user;
     }
